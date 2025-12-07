@@ -1,0 +1,142 @@
+---
+title: "Lab2-ZVIT"
+author: "Mykhailyk Maksym"
+date: "2025-12-7"
+output:
+  github_document:
+    toc: yes
+---
+Лабораторна робота №2. Створення проєкту зі статистичної обробки даних у стилі literate programming  
+
+Мета: швидкий старт для роботи в середовищі RStudio із застосуванням
+концепції «грамотного програмування» засобами мови програмування R, пакету
+RMarkdown та системи комп’ютерної верстки LaTeX.
+
+```{r echo=TRUE,dev='svg'}
+
+# Задаємо параметри функції
+b0 <- 2
+b1 <- 3
+b2 <- 1.57
+
+# Задаємо область визначення
+
+x <- seq(-10, 10, 0.1)
+y <- sin(x) * x
+
+
+plot(x, y,
+     type = "l",
+     col = "red",
+     main = "Графік функції",
+     xlab = "x",
+     ylab = "y"
+     )
+points(x, y,
+       col = "blue")
+
+df <- data.frame(x = x, y = y) 
+
+```
+
+
+```{r}
+library(rio)
+library(knitr)
+export(df, "data/data.csv")
+knitr::kable(head(df), caption = "Табл. 1. Фрагмент даних", align = "c")
+```
+```{r}
+dfNew <- import("data/data.csv")
+# Таблиця засобами knitr
+knitr::kable(head(dfNew),
+caption = "_Табл. 1. Фрагмент таблиці даних_")
+```
+Таблиця засобами stargazer
+```{r echo=TRUE, results='asis'}
+ stargazer::stargazer(head(dfNew),
+ type = "html",
+ summary = FALSE,
+ title = "_Табл. 1. Фрагмент таблиці даних_")
+```
+Таблиця засобами xtable
+```{r echo=TRUE, results='asis', warning=FALSE, message=FALSE}
+library(xtable)
+print(xtable(head(df)), type = "html")
+```
+Формуємо результуючу таблицю
+```{r}
+
+tab_params <- data.frame(
+  Параметр = c("$b_0$", "$b_1$", "$b_2$", "$x_{min}$", "$x_{max}$"),
+  Значення = c(b0, b1, b2, min(x), max(x)) 
+)
+
+
+knitr::kable(tab_params, 
+             caption = "Табл. 2. Параметри функції", 
+             escape = FALSE,
+             align = "c")   
+```
+**3 . Оптимізувати код, наведений у цій методичці, за допомогою потокового оператора %>% засобами пакету ggplot2.**
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(DT)
+library(knitr)
+
+b0 <- 2
+b1 <- 3
+b2 <- 1.57
+
+df <- data.frame(x = seq(-10, 10, 0.1)) %>%
+  mutate(y = sin(x) * x)
+
+plot_obj <- df %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_line(color = "red", size = 1) +
+  geom_point(color = "blue", size = 1.5) +
+  labs(title = "PLOTFUNC (ggplot2 version)",
+       x = "x",
+       y = "y") +
+  theme_minimal()
+
+print(plot_obj)
+
+  df %>%
+  knitr::kable(caption = "Таблиця 1. Фрагмент даних", align = "c")
+
+data.frame(
+  Параметр = c("$b_0$", "$b_1$", "$b_2$", "$x_{min}$", "$x_{max}$"),
+  Значення = c(b0, b1, b2, min(df$x), max(df$x))
+) %>%
+  knitr::kable(caption = "Табл. 2. Параметри функції",
+        escape = FALSE,
+        align = "c")
+```
+**4 . Побудувати графік функції засобами пакету ggplot2.**
+```{r}
+library(ggplot2)
+
+x_vals <- seq(-10, 10, by = 0.1)
+y_vals <- sin(x_vals) * x_vals
+
+df <- data.frame(x = x_vals, y = y_vals)
+
+ggplot(df, aes(x = x, y = y)) +
+  geom_line(color = "red", size = 1) +
+  geom_point(color = "blue", size = 1.5) +
+  labs(title = "Function Plot", x = "x", y = "y") +
+  theme_minimal()
+```
+
+
+<center>**Контрольні питання**</center>
+
+1 . Напишіть код на LaTeX для формули щільності нормального розподілу - $$ f(x) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2} $$
+
+2 . Як розв’язати таблиці і графіки в електронний документ з використанням R Markdown і пакету rmarkdown з оглядом на читабельність та грамотність коду? - Для цього треба : 1-Налаштувати структуру 2 - Грамтно писати код , використовувати %>% та ggplot2 3 - використовувати для коротких зведень і параметрів статичну функцію knitr::kable, а для великих масивів даних — інтерактивну DT::datatable, яка дозволяє гортати та фільтрувати рядки.
+
+3 . Як вирішити завдання зі вставленням та форматуванням зображень велектронному документі з використанням R, забезпечуючи читабельність таелегантність коду? - Для цього підійде використання функції knitr::include_graphics().Або якщо не треба форматувати то підійде ![імя рисунку](my_image.png).
+
+4 . Яку функцію виконує YAML-заголовок у динамічному документі? - головними функціями є - 1.Визначення кінцевого формату 2.Налаштування зовнішнього вигляду документу.3.Збереження мета даних(title,author,date)
